@@ -9,10 +9,12 @@ use craft\base\Plugin as BasePlugin;
 use craft\elements\Asset;
 use craft\events\ModelEvent;
 use craft\events\RegisterComponentTypesEvent;
+use craft\events\RegisterElementActionsEvent;
 use craft\events\ReplaceAssetEvent;
 use craft\services\Assets;
 use craft\services\Utilities;
 use craft\web\twig\variables\CraftVariable;
+use viesrood\imgixkit\elements\actions\PurgeAssets;
 use viesrood\imgixkit\models\Settings;
 use viesrood\imgixkit\services\DiagnosticsService;
 use viesrood\imgixkit\services\PurgeService;
@@ -48,6 +50,10 @@ final class Plugin extends BasePlugin
             $event->types[] = ImgixKitUtility::class;
         });
 
+        Event::on(Asset::class, Element::EVENT_REGISTER_ACTIONS, static function(RegisterElementActionsEvent $event): void {
+            $event->actions[] = PurgeAssets::class;
+        });
+
         Event::on(Assets::class, Assets::EVENT_AFTER_REPLACE_ASSET, static function(ReplaceAssetEvent $event): void {
             Plugin::getInstance()->purge->enqueueAsset($event->asset);
         });
@@ -73,7 +79,9 @@ final class Plugin extends BasePlugin
         });
 
         if (Craft::$app->getRequest()->getIsConsoleRequest()) {
-            Craft::$app->controllerMap['imgixkit'] = \viesrood\imgixkit\console\controllers\DiagnoseController::class;
+            // Lets `php craft imgixkit` and `php craft imgixkit/purge` resolve
+            // without the plugin-handle prefix Craft would otherwise require.
+            Craft::$app->controllerMap['imgixkit'] = \viesrood\imgixkit\console\controllers\ImgixKitController::class;
         }
     }
 

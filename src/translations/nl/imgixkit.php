@@ -23,4 +23,10 @@ return [
     'Attention' => 'Aandacht',
     'Error' => 'Fout',
     'Purge Imgix cache' => 'Imgix-cache legen',
+    'Purge from Imgix' => 'Uit de Imgix-cache halen',
+    'No Imgix source has an API key, so nothing can be purged.' => 'Geen enkele Imgix-bron heeft een API-key, dus er valt niets te legen.',
+    'Nothing to purge for this selection.' => 'Voor deze selectie valt er niets te legen.',
+    '{count} purge job(s) queued.' => '{count} purge-taak/taken in de wachtrij gezet.',
+    '{count} purge job(s) queued, {skipped} asset(s) skipped.' => '{count} purge-taak/taken in de wachtrij gezet, {skipped} bestand(en) overgeslagen.',
+    'The API key looks like a retired v1 key. Generate a new one with purge permissions.' => 'De API-key lijkt een uitgefaseerde v1-key. Maak een nieuwe aan met purge-rechten.',
 ];

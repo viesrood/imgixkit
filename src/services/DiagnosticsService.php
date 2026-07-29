@@ -66,12 +66,22 @@ final class DiagnosticsService extends Component
                 Craft::t('imgixkit', 'URL signing: {name}', ['name' => $name]),
                 !empty($source['signingKey']) ? Craft::t('imgixkit', 'Enabled') : Craft::t('imgixkit', 'Disabled'),
             );
+            // Imgix retired its v1 API keys; those are short. A v1 key is
+            // accepted by the config but every purge with it fails.
+            $apiKey = (string)($source['apiKey'] ?? '');
+            $legacyKey = $apiKey !== '' && strlen($apiKey) < 50;
             $checks[] = $this->check(
-                !empty($source['apiKey']) ? 'ok' : 'warning',
+                match (true) {
+                    $legacyKey => 'error',
+                    $apiKey !== '' && $settings->autoPurge => 'ok',
+                    default => 'warning',
+                },
                 Craft::t('imgixkit', 'Automatic purging: {name}', ['name' => $name]),
-                !empty($source['apiKey']) && $settings->autoPurge
-                    ? Craft::t('imgixkit', 'Enabled')
-                    : Craft::t('imgixkit', 'Disabled'),
+                match (true) {
+                    $legacyKey => Craft::t('imgixkit', 'The API key looks like a retired v1 key. Generate a new one with purge permissions.'),
+                    $apiKey !== '' && $settings->autoPurge => Craft::t('imgixkit', 'Enabled'),
+                    default => Craft::t('imgixkit', 'Disabled'),
+                },
             );
         }
 

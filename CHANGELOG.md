@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.1.0 - 2026-07-29
+
+- On-demand purging: a **Purge from Imgix** bulk action on the Assets index and
+  a `php craft imgixkit/purge --asset-id=` / `--volume=` console command. Both
+  ignore `autoPurge` and the de-duplication window, since they were asked for
+  explicitly.
+- `PurgeService::enqueueAsset()` takes a `$force` flag and returns the number of
+  jobs queued; `PurgeService::isConfigured()` reports whether any source can
+  purge at all.
+- Diagnostics flag an Imgix v1 API key. Those were retired, and every purge made
+  with one fails without saying so.
+- The console controller is now `ImgixKitController`, so `php craft imgixkit`
+  and `php craft imgixkit/purge` both resolve.
+
 ## 1.0.0 - 2026-07-29
 
 Initial release.

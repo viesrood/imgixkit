@@ -13,17 +13,26 @@ final class PurgeService extends Component
 {
     private const ENDPOINT = 'https://api.imgix.com/api/v1/purge';
 
-    public function enqueueAsset(Asset $asset): void
+    /**
+     * Queues a purge for every source this asset resolves in.
+     *
+     * @param bool $force Purge even when autoPurge is off and ignore the
+     *                    de-duplication window. Use for a purge someone asked
+     *                    for by hand.
+     * @return int The number of purge jobs queued.
+     */
+    public function enqueueAsset(Asset $asset, bool $force = false): int
     {
         $settings = Plugin::getInstance()->getSettings();
-        if (!$settings->autoPurge || $asset->kind !== 'image') {
-            return;
+        if ((!$force && !$settings->autoPurge) || $asset->kind !== 'image') {
+            return 0;
         }
         // SVGs deliberately bypass Imgix, so there is nothing to purge.
         if (strtolower((string)$asset->getExtension()) === 'svg') {
-            return;
+            return 0;
         }
 
+        $queued = 0;
         foreach (array_keys($settings->sources) as $sourceName) {
             try {
                 [, $source] = Plugin::getInstance()->urls->sourceConfig($sourceName);
@@ -32,7 +41,7 @@ final class PurgeService extends Component
                 }
                 $url = Plugin::getInstance()->urls->originalUrl($asset, $sourceName);
                 $cacheKey = 'imgixkit-purge-' . hash('sha256', $sourceName . '|' . $url);
-                if (Craft::$app->getCache()->get($cacheKey)) {
+                if (!$force && Craft::$app->getCache()->get($cacheKey)) {
                     continue;
                 }
                 Craft::$app->getCache()->set($cacheKey, true, 60);
@@ -40,6 +49,7 @@ final class PurgeService extends Component
                     'url' => $url,
                     'source' => $sourceName,
                 ]));
+                $queued++;
             } catch (\Throwable $exception) {
                 Craft::warning([
                     'message' => $exception->getMessage(),
@@ -48,6 +58,26 @@ final class PurgeService extends Component
                 ], 'imgixkit');
             }
         }
+        return $queued;
+    }
+
+    /**
+     * True when at least one source can actually purge, so callers can explain
+     * why nothing happens instead of queueing jobs that log and give up.
+     */
+    public function isConfigured(): bool
+    {
+        foreach (array_keys(Plugin::getInstance()->getSettings()->sources) as $sourceName) {
+            try {
+                [, $source] = Plugin::getInstance()->urls->sourceConfig($sourceName);
+                if (($source['apiKey'] ?? '') !== '') {
+                    return true;
+                }
+            } catch (\Throwable) {
+                // A broken source cannot purge either; the diagnostics report it.
+            }
+        }
+        return false;
     }
 
     public function purge(string $url, string $sourceName): void

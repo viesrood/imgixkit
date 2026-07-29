@@ -23,7 +23,7 @@ available from the start.
   you configured
 - Optional URL signing for sources with Secure URLs enabled
 - Automatic Imgix cache purging through the queue when an asset is replaced,
-  moved or deleted
+  moved or deleted, plus on-demand purging from the control panel or console
 - SVG assets keep their own URL, so vectors stay sharp at any size
 - Configurable fallback to the Craft URL, with logging, so pages keep rendering
   while you fix a misconfiguration
@@ -37,7 +37,7 @@ available from the start.
 2. [Configuration](#configuration)
 3. [Twig](#twig)
 4. [Behaviour worth knowing](#behaviour-worth-knowing)
-5. [Automatic purging](#automatic-purging)
+5. [Purging](#purging)
 6. [Diagnostics](#diagnostics)
 7. [Tests](#tests)
 
@@ -180,12 +180,27 @@ a preconnect hint and therefore runs on every page. The fallback keeps those
 pages rendering on their Craft URLs while you sort the configuration out, for
 instance on an environment where `config/imgixkit.php` has not landed yet.
 
-## Automatic purging
+## Purging
 
 With an `IMGIX_API_KEY` configured, ImgixKit queues a purge job when an asset is
 replaced, moved or deleted. This requires a running queue daemon. Purges are
 de-duplicated per URL for 60 seconds, a 404 from Imgix counts as "was not
 cached", and the job stops after three attempts.
+
+You can also purge on demand. Both routes bypass the `autoPurge` setting and the
+de-duplication window, because you asked for them explicitly:
+
+- **Control panel**: select assets on the Assets index and choose **Purge from
+  Imgix** from the actions menu.
+- **Console**:
+
+  ```bash
+  php craft imgixkit/purge --asset-id=123
+  php craft imgixkit/purge --volume=images
+  ```
+
+  One of the two is required, so a stray command cannot purge your whole
+  library.
 
 ## Diagnostics
 
@@ -196,8 +211,9 @@ php craft imgixkit
 The same report is available as the ImgixKit utility in the control panel. It
 reports whether signing tokens and API keys are set, keeping the values
 themselves out of the output. It also confirms that the mapped volume handles
-exist and that `defaultParams` are valid, so you can verify a fresh environment
-before the first page load.
+exist, that `defaultParams` are valid, and that the API key is not one of
+Imgix's retired v1 keys - mistakes that would otherwise surface as a blank page
+or a purge that silently never happens.
 
 ## Tests
 
