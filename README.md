@@ -1,24 +1,35 @@
 # ImgixKit
 
-A focused [Imgix](https://www.imgix.com) integration for Craft CMS 5. ImgixKit
-generates Imgix URLs and responsive variants, and nothing else: there are no
-local image transforms and no compatibility layer over other transform plugins.
-You write native Imgix parameters, so anything Imgix supports works on day one
-without waiting for the plugin to add it.
+Serve your Craft CMS 5 images through [Imgix](https://www.imgix.com). Point
+ImgixKit at your Imgix source, map your volumes, and every asset turns into a
+CDN URL that is transformed on the fly. The srcset, the rendered dimensions and
+the focal-point crop are worked out for you.
+
+In Twig you write Imgix's own parameter names, so the full Imgix API is
+available from the start.
 
 **Features**
 
-- Native Imgix parameter names, not a translated subset
-- Width srcsets and DPR srcsets, with sensible per-DPR quality defaults
-- Craft focal points are applied automatically on `fit=crop`
-- Upscale prevention: never asks Imgix for more pixels than the source has
-- Explicit volume-to-source mapping, so an asset can never resolve outside the
-  source you configured
-- Optional URL signing, and automatic cache purging on replace, move and delete
-- SVG assets bypass Imgix and keep their own URL
-- Degrades to the original Craft URL instead of taking the page down when the
-  configuration is wrong
+- Imgix URLs from Craft assets and from plain paths, on web folder and web
+  proxy sources
+- Native Imgix parameters: `w`, `h`, `fit`, `ar`, `q`, `auto`, and everything
+  else Imgix offers
+- Width srcsets and DPR srcsets, with per-DPR quality defaults
+- Rendered `width` and `height` on every result, ready for your `<img>` tag so
+  the browser can reserve the space
+- Craft focal points become `crop=focalpoint` on `fit=crop`
+- Requested sizes are capped to the resolution the source file can deliver
+- Explicit volume-to-source mapping, so generated paths stay inside the source
+  you configured
+- Optional URL signing for sources with Secure URLs enabled
+- Automatic Imgix cache purging through the queue when an asset is replaced,
+  moved or deleted
+- SVG assets keep their own URL, so vectors stay sharp at any size
+- Configurable fallback to the Craft URL, with logging, so pages keep rendering
+  while you fix a misconfiguration
+- Multiple Imgix sources side by side
 - Diagnostics in the control panel and on the console
+- English and Dutch control panel strings
 
 ## Contents
 
@@ -136,37 +147,38 @@ string.
 The first argument may also be a string path (relative for a web folder source,
 an absolute HTTPS URL for a web proxy source) instead of a Craft asset.
 
-`s` and `ixlib` are reserved and will be refused, so a template can never
-override the URL signature.
+`s` and `ixlib` are reserved, so the URL signature stays under the plugin's
+control.
 
 ## Behaviour worth knowing
 
-**No upscaling.** With `preventUpscale` (on by default) `w` and `h` are reduced
-to what the source file can deliver. With both `w` and `h` they are scaled down
-by the same factor so the ratio survives; with an `ar` the crop is taken into
-account as well. In a srcset, widths above the source width are dropped and the
-source width itself is appended if it was missing.
+**Sizes are capped to the source.** With `preventUpscale` (on by default) `w`
+and `h` are reduced to what the source file can deliver. With both `w` and `h`
+they are scaled down by the same factor so the ratio survives; with an `ar` the
+crop is taken into account as well. In a srcset, widths stay at or below the
+source width, and the source width itself is appended if it was missing.
 
-**SVG bypasses Imgix.** Craft counts SVG as `kind = image`, but rasterising a
-vector only makes it heavier and less sharp. For an SVG, `image()` returns the
-regular Craft URL with `isPassthrough` set to `true`, and `srcset()` and
-`dprSrcset()` return an empty string, since a vector needs no width variants.
-Wrap the `srcset` attribute in an `{% if %}` so no empty `srcset=""` ends up in
-your HTML. This happens before the volume check: an SVG never reaches Imgix, so
-it does not have to live in a mapped volume.
+**SVG is served straight from Craft.** Craft counts SVG as `kind = image`, and
+keeping a vector as a vector keeps it sharp at any size and smaller on the wire.
+For an SVG, `image()` returns the regular Craft URL with `isPassthrough` set to
+`true`, and `srcset()` and `dprSrcset()` return an empty string, since a vector
+needs no width variants. Wrap the `srcset` attribute in an `{% if %}` to keep
+your HTML clean. This is decided before the volume check, so an SVG works from
+any volume.
 
-**Falling back instead of crashing.** When something is wrong - unknown source,
-invalid domain, unmapped volume - then:
+**Fallback behaviour.** When the configuration does not resolve - unknown
+source, invalid domain, unmapped volume - you choose what happens:
 
-- in devMode, or with `fallbackInProduction` set to `false`, it throws;
-- otherwise the error is logged under `imgixkit` and the result degrades:
+- in devMode, or with `fallbackInProduction` set to `false`, the exception
+  surfaces so you see it immediately;
+- otherwise the error is logged under `imgixkit` and the result falls back:
   `image()` returns the Craft original with `isFallback` set to `true`, while
   `srcset()`, `dprSrcset()` and `domain()` return an empty string.
 
-That last part matters for `domain()`, which is typically called in a base
-layout for a preconnect hint and therefore runs on every page. Without this
-degradation a missing `config/imgixkit.php` on one environment would turn every
-page into a 500 instead of only affecting images.
+This matters most for `domain()`, which is typically called in a base layout for
+a preconnect hint and therefore runs on every page. The fallback keeps those
+pages rendering on their Craft URLs while you sort the configuration out, for
+instance on an environment where `config/imgixkit.php` has not landed yet.
 
 ## Automatic purging
 
@@ -182,10 +194,10 @@ php craft imgixkit
 ```
 
 The same report is available as the ImgixKit utility in the control panel. It
-never shows signing tokens or API keys, only whether they are set. It also
-checks that the mapped volume handles actually exist and that `defaultParams`
-are valid - both mistakes that would otherwise only surface on the first page
-load.
+reports whether signing tokens and API keys are set, keeping the values
+themselves out of the output. It also confirms that the mapped volume handles
+exist and that `defaultParams` are valid, so you can verify a fresh environment
+before the first page load.
 
 ## Tests
 
