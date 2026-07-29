@@ -1,0 +1,26 @@
+<?php
+
+return [
+    'Default source' => 'Standaardbron',
+    'The default source does not exist.' => 'De standaardbron bestaat niet.',
+    'Default parameters' => 'Standaardparameters',
+    'None' => 'Geen',
+    'Source: {name}' => 'Bron: {name}',
+    'Domain is missing' => 'Domein ontbreekt',
+    'Volume mapping: {name}' => 'Volumemapping: {name}',
+    'No volumes mapped' => 'Geen volumes gemapt',
+    'Unknown volume handle: {handles}' => 'Onbekende volumehandle: {handles}',
+    'URL signing: {name}' => 'URL-signing: {name}',
+    'Automatic purging: {name}' => 'Automatische purge: {name}',
+    'Enabled' => 'Actief',
+    'Disabled' => 'Niet actief',
+    'ImgixKit diagnostics' => 'ImgixKit-diagnose',
+    'This check never reveals signing tokens or API keys.' => 'Deze controle toont geen signing tokens of API-keys.',
+    'Check' => 'Controle',
+    'Status' => 'Status',
+    'Details' => 'Details',
+    'OK' => 'In orde',
+    'Attention' => 'Aandacht',
+    'Error' => 'Fout',
+    'Purge Imgix cache' => 'Imgix-cache legen',
+];

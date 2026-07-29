@@ -1,0 +1,63 @@
+{
+    "name": "viesrood/imgixkit",
+    "description": "Imgix integration for Craft CMS 5: native Imgix parameters, width and DPR srcsets, Craft focal points, upscale prevention and automatic cache purging.",
+    "type": "craft-plugin",
+    "license": "MIT",
+    "keywords": [
+        "craft",
+        "craftcms",
+        "craft-plugin",
+        "imgix",
+        "images",
+        "responsive-images",
+        "srcset",
+        "cdn",
+        "image-transforms"
+    ],
+    "support": {
+        "docs": "https://github.com/viesrood/imgixkit/blob/main/README.md",
+        "issues": "https://github.com/viesrood/imgixkit/issues",
+        "source": "https://github.com/viesrood/imgixkit"
+    },
+    "require": {
+        "php": ">=8.2",
+        "craftcms/cms": "^5.0",
+        "imgix/imgix-php": "^4.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "viesrood\\imgixkit\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "viesrood\\imgixkit\\tests\\": "tests/"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "platform": {
+            "php": "8.2.0"
+        },
+        "allow-plugins": {
+            "craftcms/plugin-installer": true,
+            "yiisoft/yii2-composer": true
+        }
+    },
+    "scripts": {
+        "test": "phpunit"
+    },
+    "extra": {
+        "handle": "imgixkit",
+        "name": "ImgixKit",
+        "schemaVersion": "1.0.0",
+        "class": "viesrood\\imgixkit\\Plugin",
+        "developer": "Viesrood",
+        "developerUrl": "https://viesrood.nl",
+        "documentationUrl": "https://github.com/viesrood/imgixkit",
+        "changelogUrl": "https://raw.githubusercontent.com/viesrood/imgixkit/main/CHANGELOG.md"
+    }
+}

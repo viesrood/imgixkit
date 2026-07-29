@@ -1,0 +1,29 @@
+<h2>{{ 'ImgixKit diagnostics'|t('imgixkit') }}</h2>
+<p>{{ 'This check never reveals signing tokens or API keys.'|t('imgixkit') }}</p>
+
+<table class="data fullwidth">
+    <thead>
+        <tr>
+            <th>{{ 'Check'|t('imgixkit') }}</th>
+            <th>{{ 'Status'|t('imgixkit') }}</th>
+            <th>{{ 'Details'|t('imgixkit') }}</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for check in report.checks %}
+            <tr>
+                <th>{{ check.label }}</th>
+                <td>
+                    {% if check.status == 'ok' %}
+                        <span class="status green"></span> {{ 'OK'|t('imgixkit') }}
+                    {% elseif check.status == 'warning' %}
+                        <span class="status orange"></span> {{ 'Attention'|t('imgixkit') }}
+                    {% else %}
+                        <span class="status red"></span> {{ 'Error'|t('imgixkit') }}
+                    {% endif %}
+                </td>
+                <td>{{ check.detail }}</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
