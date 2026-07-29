@@ -21,6 +21,7 @@ available from the start.
 - Requested sizes are capped to the resolution the source file can deliver
 - Explicit volume-to-source mapping, so generated paths stay inside the source
   you configured
+- Version-stamped URLs, so replacing a file is picked up without a purge
 - Optional URL signing for sources with Secure URLs enabled
 - Automatic Imgix cache purging through the queue when an asset is replaced,
   moved or deleted, plus on-demand purging from the control panel or console
@@ -91,6 +92,7 @@ return [
     'preventUpscale' => true,
     'autoPurge' => true,
     'fallbackInProduction' => true,
+    'versionUrls' => true,
 ];
 ```
 
@@ -179,6 +181,14 @@ This matters most for `domain()`, which is typically called in a base layout for
 a preconnect hint and therefore runs on every page. The fallback keeps those
 pages rendering on their Craft URLs while you sort the configuration out, for
 instance on an environment where `config/imgixkit.php` has not landed yet.
+
+**URLs carry a version stamp.** With `versionUrls` (on by default) every asset
+URL gets a `v=<last modified timestamp>`. Replace a file and the URL changes, so
+Imgix renders the new file and browsers stop serving their cached copy. This is
+what makes purging optional: without it, a replaced image can keep showing the
+old version until the Imgix cache expires. Pass your own `v` to override it, or
+set `versionUrls` to `false` to leave it off. String paths get no version stamp,
+since there is no file to read a timestamp from.
 
 ## Purging
 

@@ -18,12 +18,18 @@ final class Settings extends Model
     public bool $autoPurge = true;
     public bool $fallbackInProduction = true;
 
+    /**
+     * Append v=<last modified timestamp> to asset URLs, so a replaced file gets
+     * a new URL and is picked up without waiting for a purge.
+     */
+    public bool $versionUrls = true;
+
     public function rules(): array
     {
         return [
             [['defaultSource'], 'required'],
             [['sources', 'defaultParams', 'srcsetWidths', 'dprs'], 'safe'],
-            [['preventUpscale', 'autoPurge', 'fallbackInProduction'], 'boolean'],
+            [['preventUpscale', 'autoPurge', 'fallbackInProduction', 'versionUrls'], 'boolean'],
         ];
     }
 }

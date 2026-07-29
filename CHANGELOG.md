@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.2.0 - 2026-07-29
+
+- Asset URLs now carry `v=<last modified timestamp>`, so replacing a file
+  changes its URL and both Imgix and the browser pick the new version up on
+  their own. Purging becomes a nice-to-have instead of the only way to ship an
+  updated image. Turn it off with `versionUrls => false`, or pass your own `v`.
+
 ## 1.1.0 - 2026-07-29
 
 - On-demand purging: a **Purge from Imgix** bulk action on the Assets index and

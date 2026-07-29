@@ -53,6 +53,7 @@ final class UrlService extends Component
             $params = $this->normalizeParams(array_merge($settings->defaultParams, $params));
             $params = $this->applyFocalPoint($image, $params);
             $params = $this->preventUpscale($image, $params);
+            $params = $this->applyVersion($image, $params);
             [$width, $height] = $this->dimensions($image, $params);
             $url = $this->builder($sourceName, $source)->createURL($path, $params);
 
@@ -359,6 +360,24 @@ final class UrlService extends Component
         $params['crop'] = 'focalpoint';
         $params['fp-x'] = $focalPoint['x'];
         $params['fp-y'] = $focalPoint['y'];
+        return $params;
+    }
+
+    /**
+     * Ties the URL to the file's last modified time. Replace an asset and every
+     * URL changes, so Imgix renders the new file and browsers stop using their
+     * cached copy. That turns purging into a nice-to-have rather than the only
+     * way to get an updated image out.
+     */
+    private function applyVersion(Asset|string $image, array $params): array
+    {
+        if (!$image instanceof Asset || !$this->settings()->versionUrls || isset($params['v'])) {
+            return $params;
+        }
+        $timestamp = $image->dateModified?->getTimestamp();
+        if ($timestamp !== null) {
+            $params['v'] = $timestamp;
+        }
         return $params;
     }
 

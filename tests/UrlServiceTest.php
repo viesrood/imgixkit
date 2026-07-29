@@ -358,6 +358,40 @@ final class UrlServiceTest extends TestCase
         self::assertArrayNotHasKey('crop', $image->params);
     }
 
+    // ------------------------------------------------------- versionering
+
+    public function testAssetUrlsCarryTheLastModifiedTimestamp(): void
+    {
+        $image = $this->service->image($this->asset(1000, 500), ['w' => 400]);
+        self::assertSame(1750000000, $image->params['v']);
+        self::assertStringContainsString('v=1750000000', $image->url);
+    }
+
+    public function testAnExplicitVersionWins(): void
+    {
+        $image = $this->service->image($this->asset(1000, 500), ['w' => 400, 'v' => 'handmatig']);
+        self::assertSame('handmatig', $image->params['v']);
+    }
+
+    public function testVersioningCanBeTurnedOff(): void
+    {
+        $service = $this->service(['versionUrls' => false]);
+        $image = $service->image($this->asset(1000, 500), ['w' => 400]);
+        self::assertArrayNotHasKey('v', $image->params);
+    }
+
+    public function testStringPathsGetNoVersion(): void
+    {
+        $image = $this->service->image('folder/photo.jpg', ['w' => 400]);
+        self::assertArrayNotHasKey('v', $image->params);
+    }
+
+    public function testEverySrcsetVariantIsVersioned(): void
+    {
+        $srcset = $this->service->srcset($this->asset(1000, 500), [], [400, 800]);
+        self::assertSame(2, substr_count($srcset, 'v=1750000000'));
+    }
+
     // ---------------------------------------------------------------- svg
 
     public function testVectorsBypassImgixEntirely(): void
@@ -441,6 +475,7 @@ final class UrlServiceTest extends TestCase
         $asset->method('getFocalPoint')->willReturn(['x' => 0.25, 'y' => 0.75]);
         $asset->method('getUrl')->willReturn("https://cdn.example.com/uploads/folder/photo.$extension");
         $asset->kind = 'image';
+        $asset->dateModified = new \DateTime('@1750000000');
 
         return $asset;
     }
